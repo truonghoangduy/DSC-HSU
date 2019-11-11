@@ -7,11 +7,11 @@ admin.initializeApp({
 );
 const SerialPort = require('serialport')
 const Readline = require('@serialport/parser-readline');
-const port = new SerialPort('/dev/cu.usbserial-14220', {
-  baudRate: 9600
+const port1 = new SerialPort('/dev/cu.usbserial-14220', {
+  baudRate: 19200
 })
 var counter =0;
-const parser = port.pipe(new Readline({ delimiter: '\r\n' }));
+const parser = port1.pipe(new Readline({ delimiter: '\r\n' }));
 
 
 
@@ -50,25 +50,45 @@ function autoPush(data){
 //   console.log(childSnapshot.val());
 // })
 
+function handleWatering(Humninity){
+  console.log(typeof(Humninity))
+  var Pump = false
+  if (Humninity>29) {
+    //donothing
+    Pump=true
+    port1.write("pump")
+  }
+  else{
+    console.log('notrunning')
+    port1.write("0")
+     // autoPush(HumTemp)
+    //trigger watering
+
+  }
+}
 
 
 
-
-
+var HumTemp
 //serial
-port.on("open", () => {
+port1.on("open", () => {
     console.log('serial port open');
   });
   parser.on('data', data =>{
     // console.log('got word from arduino:', data);
     // console.log(JSON.parse(data));
-    var aaa = JSON.parse(data);
-    // console.log(aaa)
-    // console.log(typeof(aaa))
-    port.write("0")
-    autoPush(aaa)
+    try {
+      HumTemp = JSON.parse(data);
+      console.log(HumTemp)
+    } catch (error) {
+      console.log(error)
+    }
+    // finally{
+    //   HumTemp=data
+    // }
+    handleWatering(HumTemp["temp"])
     
   });
 
-port.write("0")
+port1.write("0")
 
